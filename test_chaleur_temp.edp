@@ -1,0 +1,176 @@
+verbosity=0;
+
+func real f(){
+
+    if( sqrt( ( x-0.5 )^2 + ( y-0.75 )^2 ) < 0.12 ) {
+        return 1;
+    }
+
+    else{
+        return 0;
+    }
+}
+func real fso2(){
+   
+        return 0.5;
+    
+}
+
+func real fso1(){
+   
+        return 0.5;
+    
+}
+
+func real u0(){
+
+    if( sqrt( ( x-1.5 )^2 + ( y-0.25 )^2 ) < 0.2 ) {
+    
+        return 100*( 0.2 - sqrt( ( x-1.5 )^2 + ( y-0.25 )^2 ) );
+        
+    }
+
+    else{
+        return 0;
+    }  
+}
+
+func real u02(){
+    return 20;
+}
+
+
+
+
+int n = 20;
+
+border ePCB(t=0, 1.0){x=t; y=0; label=1 ;} ;
+border ea(t=1.0, 3.0){x=t; y=0; label=2 ;} ;
+border lPCB(t=0, 5.0){x=3.0; y=t; label=3;} ;
+border ga(t=3.0, 1.0){x=t; y=5.0; label=4;} ;
+border gPCB(t=1.0, 0){x=t; y=5.0; label=5;} ;
+border hPCB(t=5.0, 0){x=0; y=t; label=6 ;} ;
+
+
+
+border lIC1(t=2.2, 1.0){x=1.0; y=t; label=7;} ;
+border gIC1(t=1.0, 2.0){x=t; y= 1.0; label=8;} ;
+border hIC1(t=1.0, 2.2){x=2.0; y=t; label=9;} ;
+border eIC1(t=2.0, 1.0){x=t; y= 2.2; label=10;} ;
+
+border lIC2(t=4.2, 3.0){x=1.0; y=t; label=11;} ;
+border gIC2(t=1.0, 2.0){x=t; y= 3.0; label=12;} ;
+border hIC2(t=3.0, 4.2){x=2.0; y=t; label=13;} ;
+border eIC2(t=2.0, 1.0){x=t; y= 4.2; label=14;} ;
+
+border b1(t=0.0, 1.0){x=1.0; y=t; label=15;} ;
+border b2(t=2.2, 3.0){x=1.0; y=t; label=16;} ;
+border b3(t=4.2, 5.0){x=1.0; y=t; label=17;} ;
+
+
+mesh Th = buildmesh(ePCB(n) + ea(n) + hPCB(n) + gPCB(n) + ga(n) + lPCB(n)
++ lIC1(n) + hIC1(n) + eIC1(n) + gIC1(n)
++ lIC2(n) + hIC2(n) + eIC2(n) + gIC2(n)
++ b1(n) + b2(n) + b3(n));
+
+
+
+//mesh Th1 = buildmesh(ea(n) + lPCB(n) + ga(n) + b3(-n) + lIC2(n) + b2(-n) + lIC1(n) + b1(-n));
+
+mesh Th2 = buildmesh(ea(n) + lPCB(n) + ga(n) + b3(-n) + eIC2(-n) + hIC2(-n) + gIC2(-n) + b2(-n) + eIC1(-n) + hIC1(-n) + gIC1(-n) + b1(-n));
+
+mesh Th3 = buildmesh(ePCB(n) + b1(n) + lIC1(-n) + b2(n) + lIC2(-n) + b3(n) + gPCB(n) + hPCB(n));
+
+mesh Th4 = buildmesh(lIC1(n) + gIC1(n) + hIC1(n) + eIC1(n));
+
+mesh Th5 = buildmesh(lIC2(n) + gIC2(n) + hIC2(n) + eIC2(n));
+
+
+//mesh Th = Th2 + Th3 + Th4 + Th5;
+
+
+
+
+
+
+real theta = 1.0;
+real dt = 0.05;
+
+plot(Th,wait=1);
+
+real T=5;
+real mu=0.05;
+real T0=1;
+real k3 = 0.03;
+real k4 = 0.03;
+real k1 = 0.03;
+real k2 = k1;
+real K = 0.3;
+
+
+fespace Vh(Th, P1);
+Vh u,v, uold, fold;  //vhT
+
+fespace Vh1(Th2, P1);
+Vh1 p,q;            // vhP
+
+fespace Vh2(Th2, P2);
+Vh2 u1,u2,v1,v2;    //vhU
+
+
+uold = fso1();
+fold = fso2();
+real temp = dt;
+
+/*
+
+problem Chaleur(u,v) = int2d(Th2)( u*v +dt*K*(dx(u)*dx(v) + dy(u)*dy(v))) - int2d(Th)( uold*v + dt*K*(dx(uold)*dx(v) + dy(uold)*dy(v)))
+			+ int2d(Th3)( u*v +dt*K*(dx(u)*dx(v) + dy(u)*dy(v))) - int2d(Th)( uold*v + dt*K*(dx(uold)*dx(v) + dy(uold)*dy(v)))
+			+ int2d(Th4)( u*v +dt*K*(dx(u)*dx(v) + dy(u)*dy(v))) - int2d(Th)( uold*v + dt*K*(dx(uold)*dx(v) + dy(uold)*dy(v)))
+			+ int2d(Th5)( u*v +dt*K*(dx(u)*dx(v) + dy(u)*dy(v))) - int2d(Th)( uold*v + dt*K*(dx(uold)*dx(v) + dy(uold)*dy(v)))
+			- int1d(Th4,8,7,9)(k4*dx(u)*N.x*v + k4*dy(u)*N.y*v) 
+			- int1d(Th4,10)(k3*dx(u)*N.x*v + k3*dy(u)*N.y*v)
+			- int1d(Th5,12,11,13)(k4*dx(u)*N.x*v + k4*dy(u)*N.y*v) 
+			- int1d(Th5,14)(k3*dx(u)*N.x*v + k3*dy(u)*N.y*v) 
+			- int1d(Th3,1,15,7,16,11,17)(k3*dx(u)*N.x*v + k3*dy(u)*N.y*v) 
+			- int1d(Th2,6,17,14,13,12,16,10,9,8,15,2)(k4*dx(u)*N.x*v + k4*dy(u)*N.y*v) 
+			- int2d(Th4)(fso1()*v) - int2d(Th5)(fso2()*v) + on(1,u=0) +on(2,u=0);
+
+
+problem Stokes(us,vs) = int2d(Th)(dx(us)*vs + V*((dx(us)*dx(vs)+dy(us)*dy(vs))*dt)) - int2d(Th)(P*dx(vs) + P*dy(vs)) 
+			- int1d(Th,ga)(V*dx(us)*N.x*vs + V*dy(us)*N.y*vs) 
+			+ on(b3,eIC2,hIC2,gIC2,b2,eIC1,hIC1,gIC1,b1, us = 0) + on(lPCB,us = 0) + on(ea,us = 50);
+
+*/
+
+
+problem Stokes([u1,u2,p],[v1,v2,q]) = int2d(Th2)(dt*dx(u1)*dx(v1) + dt*dx(u2)*dx(v2) + dt*dy(u1)*dy(v1) + dt*dy(u2)*dy(v2))
+					+ int2d(Th2)(dx(p)*v1 + dy(p)*v2) + int2d(Th2)((dx(u1) + dy(u2))*q)
+					+ on(b3,eIC2,hIC2,gIC2,b2,eIC1,hIC1,gIC1,b1, u1=0, u2=0) + on(lPCB,u1=0, u2=0) + on(ea,u1=50, u2=50);
+
+
+problem Chaleur(u,v) = int2d(Th)( u*v +dt*K*(dx(u)*dx(v) + dy(u)*dy(v)) ) - int2d(Th)( uold*v + dt*K*(dx(uold)*dx(v) + dy(uold)*dy(v))) 
+			- int2d(Th,1,2,3,4,5,6)(K*dx(u)*N.x*v + K*dy(u)*N.y*v) 
+			- int2d(Th4)(fso1()*v) - int2d(Th5)(fso2()*v) + on(1,u=0) +on(2,u=0);
+
+
+
+
+for(int i = 1;i<500;i++){
+    Chaleur;
+    Stokes;
+    uold = u;
+    Vh2 modU = sqrt((u1*u1) + (u2*u2));
+    //plot(u,[u1,u2],value=true,fill = 1);
+    plot(u,modU,value=true,fill = 1);
+    //plot(modU,value=true,fill = 1);
+
+    dt = temp + dt;
+  //  Th=adaptmesh(Th,u,0.5);
+  //  if(i%50 == 0){
+  //      plot(Th,wait = true);
+  //  }
+}
+
+
+
