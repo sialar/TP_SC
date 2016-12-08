@@ -1,0 +1,14 @@
+mesh Carre=square(102,102);
+plot(Carre,wait=true);
+
+fespace Vh(Carre,P1);
+func f = 2*pi^2*sin(pi*x)*sin(pi*y);
+Vh u,v;
+solve Poisson(u,v) = int2d(Carre)( dx(u)*dx(v) + dy(u)*dy(v) ) - int2d(Carre)(f*v) + on(1,2,3,4,u=0);
+plot(u,value=true,wait=true);
+Vh solex = sin(pi*x)*sin(pi*y);
+plot(solex,value=true,wait = true);
+Vh diff = solex-u;
+plot(diff,value=true,wait=true);
+
+

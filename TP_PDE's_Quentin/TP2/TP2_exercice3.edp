@@ -1,0 +1,60 @@
+//V0h h = hTriangle;
+
+verbosity=0;
+
+int n=8;
+real[int] erL2(n);
+real[int] erH1(n);
+real[int] h(n);
+
+for(int i = 1;i<=n;i++){
+
+    mesh Carre=square(2^i,2^i);
+    //plot(Carre,wait=true);
+    fespace Vh(Carre,P2);
+    
+    //border C1(t=0,1){x = t;y = 0;label=1;}
+    //border C2(t=0,1){x = 1;y = t;label=2;}
+   // border C3(t=0,1){x = -t+1;y = 1;label=3;}
+    //border C4(t=0,1){x = 0;y = 1-t;label=4;}
+
+    //mesh Th4 = buildmesh(C1(2^i) + C2(2^i) + C3(2^i) + C4(2^i));
+    //fespace Vh(Th4,P1);
+    
+    func f = 2*pi^2*sin(pi*x)*sin(pi*y);
+    Vh u,v;
+    
+    solve Poisson(u,v) = int2d(Carre)( dx(u)*dx(v) + dy(u)*dy(v) ) - int2d(Carre)(f*v) + on(1,2,3,4,u=0);    //plot(u,value=true,wait=true);
+    Vh solex = sin(pi*x)*sin(pi*y);    //plot(solex,value=true,wait = true);
+    Vh diff = solex-u;    //plot(diff,value=true,wait=true);
+
+    Vh maxh = hTriangle;
+    h[i-1] = log(maxh[].max);
+    
+    erL2[i-1] = log(sqrt(int2d(Carre)((diff)^2)));
+    erH1[i-1] = log(sqrt( int2d(Carre)( dx(diff)*dx(diff) + dy(diff)*dy(diff) )));
+    
+    cout<<"iteration : "<<erL2<<endl;
+    cout<<"       erL2 = "<<erL2<<endl;
+    cout<<"       erH1 = "<<erH1<<endl;
+
+int ndof=Vh.ndof;
+cout<<"nombre degree de liberte : "<< ndof <<endl; 
+
+
+}
+plot([h, erH1], [h, erL2], [h,h],value = true, wait=true);
+
+real a = ( erH1[7] - erH1[4] )/( h[7] - h[4] );
+cout<<"pente H1 = "<<a<<endl;
+
+real b = ( erL2[7] - erL2[4] )/( h[7] - h[4] );
+cout<<"pente L2 = "<<b<<endl;
+
+
+
+
+
+
+
+

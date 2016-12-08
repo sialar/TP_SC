@@ -1,0 +1,59 @@
+//Petit 1
+
+border Disque(t=0,2*pi){x = cos(t);y = sin(t);label=1;}
+mesh Th = buildmesh(Disque(50));
+plot(Th,wait=true);
+
+fespace Vh(Th,P1);
+func f = 1;
+Vh u,v;
+solve Poisson(u,v) = -int2d(Th)( dx(u)*dx(v) + dy(u)*dy(v) ) + int2d(Th)(f*v) + on(1,u=0);
+plot(u,value=true,wait=true);
+
+
+//Petit 2
+
+border Disque2(t=0,2*pi){x = cos(t);y = sin(t);}
+mesh Th2 = buildmesh(Disque2(50));
+plot(Th2,wait=true);
+
+fespace Vh2(Th2,P1);
+func f2 = 0;
+Vh2 a,b;
+solve Poisson2(a,b) = -int2d(Th2)( dx(a)*dx(b) + dy(a)*dy(b) ) - int2d(Th2)(f2*b)  ;
+plot(a,value=true,wait=true);
+
+//On peut constater que lorsque f est non-nul, la solution diverge (ordre de 10^14 pour f = 1). Si f est égal à 0, la solution est sur les bords
+
+
+//Petit 3
+
+border Disque3(t=0,2*pi){x = cos(t);y = sin(t);label=1;}
+mesh Th3 = buildmesh(Disque3(50));
+plot(Th3,wait=true);
+
+fespace Vh3(Th3,P1);
+func f3 = 0;
+Vh3 u3,v3;
+solve Poisson3(u3,v3) = -int2d(Th3)( dx(u3)*dx(v3) + dy(u3)*dy(v3) + u3*v3 ) - int2d(Th3)(f3*v3) -int1d(Th3,1)(6*v3) ;
+plot(u3,value=true,wait=true);
+
+
+border C1(t=0,2){x = t;y = 0;label=1;}
+border C2(t=0,1){x = 2;y = t;label=2;}
+border C3(t=0,2){x = -t+2;y = 1;label=3;}
+border C4(t=0,1){x = 0;y = 1-t;label=4;}
+
+mesh Th4 = buildmesh(C1(50) + C2(50) + C3(50) + C4(50));
+plot(Th4,wait=true);
+
+fespace Vh4(Th4,P1);
+func f4 = 0;
+Vh4 u4,v4;
+solve Poisson4(u4,v4) = -int2d(Th4)( dx(u4)*dx(v4) + dy(u4)*dy(v4) + u4*v4 ) - int2d(Th4)(f4*v4) -int1d(Th4,2)(6*v4) -int1d(Th4,4)(6*v4) + on(1,u4=0)  + on(3,u4=1);
+plot(u4,value=true,wait=true);
+
+
+
+
+

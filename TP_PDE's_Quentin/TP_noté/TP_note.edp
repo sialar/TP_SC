@@ -1,0 +1,118 @@
+
+
+real visc = 1;
+
+/*
+
+mesh Carre=square(50,50);
+plot(Carre,wait=true);
+
+fespace Vh1(Carre, P1);
+Vh1 p,q;
+
+fespace Vh2(Carre, P2);
+Vh2 u1,u2,v1,v2;
+
+
+problem Stokes([u1,u2,p],[v1,v2,q]) = int2d(Carre)(  dx(u1)*dx(v1) +   dx(u2)*dx(v2) + dy(u1)*dy(v1) +   dy(u2)*dy(v2)  )
+				 + int2d(Carre)( dx(p)*v1 + dy(p)*v2 ) +  int2d(Carre)( ( dx(u1) + dy(u2) )*q ) 
+				 + on(1,4,u1 =0 , u2 = 0) + on(3, u1=1 , u2 = 0) + on(2, u1=0 , u2 = 1);
+
+Stokes;
+
+plot(u1, value=true, wait=true, ps = "q4_50_C7_u1.png");
+
+plot(u2, value=true, wait=true, ps = "q4_50_C7_u2.png");
+
+plot(p, value=true, wait=true, ps = "q4_50_C7_p.png");
+
+plot([u1,u2], value=true, coef = 0.01, wait=true, ps = "q4_50_C7.png");
+
+
+
+
+
+
+//border C1(t=0,2*pi){x = t/(2*pi);y = sin(8*t)/(16*pi);label = 1;};
+border C2(t=0,1){x = 1;y = t;label = 2;};
+border C3(t=0,1){x = -t+1;y = 1;label = 3;};
+border C4(t=0,1){x = t;y = 1-t;label = 4;};
+border C11(t=0,2*pi){x = -0.1*cos(t)+ 0.75 ;y = 0.1*sin(t) + 0.65;}
+mesh Th = buildmesh( C2(20) + C3(20) + C4(20) + C11(20));
+plot(Th,wait=true);
+
+fespace Vh1(Th, P1);
+Vh1 p,q;
+
+fespace Vh2(Th, P2);
+Vh2 u1,u2,v1,v2;
+
+problem Stokes([u1,u2,p],[v1,v2,q]) = int2d(Th)(  dx(u1)*dx(v1) +   dx(u2)*dx(v2) + dy(u1)*dy(v1) +   dy(u2)*dy(v2) ) + int2d(Th)( dx(p)*v1 + dy(p)*v2 ) +  int2d(Th)( ( dx(u1) + dy(u2) )*q ) + on(2,4,u2=0,u1 =0) + on(3, u1=1 , u2 = 0) ;
+
+Stokes;
+
+plot(u1, value=true, wait=true, ps = "q7_50_tri_u1.png");
+plot(u2, value=true, wait=true, ps = "q7_50_tri_u2.png");
+plot(p, value=true, wait=true, ps = "q7_50_tri_p.png");
+plot([u1,u2], value=true, coef = 0.1, wait=true, ps = "q7_50_tri.png");
+
+
+
+
+
+
+
+fespace Vh1(Carre, P1);
+Vh1 p,q;
+
+fespace Vh2(Carre, P2);
+Vh2 u1,u2,v1,v2;
+
+
+problem Stokes([u1,u2,p],[v1,v2,q]) = int2d(Carre)(  dx(u1)*dx(v1) +   dx(u2)*dx(v2) + dy(u1)*dy(v1) +   dy(u2)*dy(v2)  ) + int2d(Carre)( dx(p)*v1 + dy(p)*v2 ) +  int2d(Carre)( ( dx(u1) + dy(u2) )*q ) + on(1,2,4,u1 =0 , u2 = 0) + on(3, u1=1 , u2 = 0);
+
+Stokes;
+
+plot(u1, value=true, wait=true, ps = "q8_50_u1.png");
+
+plot(u2, value=true, wait=true, ps = "q8_50_u2.png");
+
+plot(p, value=true, wait=true, ps = "q8_50_p.png");
+
+plot([u1,u2], value=true, coef = 0.01, wait=true, ps = "q4_50.png");
+*/
+
+mesh Carre=square(10,10);
+
+border C1(t=0,2*pi){x = t/(2*pi);y = sin(8*t)/(16*pi);label = 1;};
+border C2(t=0,1){x = 1;y = t;label = 2;};
+border C3(t=0,1){x = -t+1;y = 1;label = 3;};
+border C4(t=0,1){x = 0;y = 1-t;label = 4;};
+mesh Th = buildmesh(C1(20) + C2(20) + C3(20) + C4(20)  );
+
+for(int i = 1;i<=1;i++){
+    
+    plot(Th,wait=true);
+
+    fespace Vh1(Th, P1);
+    Vh1 p,q;
+    fespace Vh2(Th, P2);
+    Vh2 u1,u2,v1,v2;
+    
+  
+   problem Stokes([u1,u2,p],[v1,v2,q]) = int2d(Th)(  dx(u1)*dx(v1) +   dx(u2)*dx(v2) + dy(u1)*dy(v1) +   dy(u2)*dy(v2)  )
+					 + int2d(Th)( dx(p)*v1 + dy(p)*v2 ) +  int2d(Th)( ( dx(u1) + dy(u2) )*q )
+					 + on(1,2,4,u1 =0 , u2 = 0) + on(3, u1=1 , u2 = 0);
+
+    Stokes;
+    plot(u1, value=true, wait=true);
+
+    plot(u2, value=true, wait=true );
+
+    plot(p, value=true, wait=true);
+    plot([u1,u2],value=true,wait=true);
+
+    //Th=adaptmesh(Th,[u1,u2,p],0.001);
+
+}
+
