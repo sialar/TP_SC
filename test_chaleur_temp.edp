@@ -1,8 +1,16 @@
 verbosity=0;
 
 
-// functions
+//##################################################
+// Macros               ###
+//#########################
+macro Grad(u1,u2) [ dx(u1),dy(u1) , dx(u2),dy(u2) ] //
+macro UgradV(u1,u2,v1,v2) [ [u1,u2]'*[dx(v1),dy(v1)] , [u1,u2]'*[dx(v2),dy(v2)] ] //
+macro div(u1,u2) (dx(u1)+dy(u2)) //
 
+//##################################################
+// functions            ###
+//#########################
 func real f(){
 
     if( sqrt( ( x-0.5 )^2 + ( y-0.75 )^2 ) < 0.12 ) {
@@ -43,7 +51,10 @@ func real u02(){
 }
 
 
-// mesh
+ 
+//##################################################
+// mesh                 ###
+//#########################
 
 int n = 20;
 
@@ -93,8 +104,9 @@ mesh Th5 = buildmesh(lIC2(n) + gIC2(n) + hIC2(n) + eIC2(n));
 
 
 
-
-// variables
+//##################################################
+// variables            ###
+//######################### 
 
 real theta = 1.0;
 real dt = 0.1;
@@ -115,8 +127,10 @@ real epsv = 1e-6, epsu = 1e-6, epsp = 1e-6;
 
 
 
-
-// spaces
+ 
+//##################################################
+// spaces               ###
+//######################### 
 
 fespace VhT(Th, P1);
 VhT u,v, uold, fold;  //vhT
@@ -139,8 +153,10 @@ uold = fso1();
 fold = fso2();
 real temp = dt;
 
-// variationals formulations (marchent pas)
 
+//##################################################
+// variationals formulations     ###
+//##################################
 /*
 
 problem Chaleur(u,v) = int2d(Th2)( u*v +dt*K*(dx(u)*dx(v) + dy(u)*dy(v))) - int2d(Th)( uold*v + dt*K*(dx(uold)*dx(v) + dy(uold)*dy(v)))
@@ -163,11 +179,9 @@ problem Stokes(us,vs) = int2d(Th)(dx(us)*vs + V*((dx(us)*dx(vs)+dy(us)*dy(vs))*d
 */
 
 
-// variationals formulations
-
 problem Stokes([u1,u2,p],[v1,v2,q]) = int2d(Th2)(dt*dx(u1)*dx(v1) + dt*dx(u2)*dx(v2) + dt*dy(u1)*dy(v1) + dt*dy(u2)*dy(v2))
 					+ int2d(Th2)(dx(p)*v1 + dy(p)*v2) + int2d(Th2)((dx(u1) + dy(u2))*q)
-					- int2d(Th2)(dy(v1)*(T0 - u) + dy(v2)*(T0 - u))
+					- int2d(Th2)(dy(v1)*(T0 - u) + dy(v2)*(T0 - u))		// link equation chaleur
 					+ on(b3,eIC2,hIC2,gIC2,b2,eIC1,hIC1,gIC1,b1, u1=0, u2=0) + on(lPCB,u1=0, u2=0) + on(ea,u1=50, u2=50);
 
 
@@ -177,20 +191,23 @@ problem Stokes([u1,u2,p],[v1,v2,q]) = int2d(Th2)(dt*dx(u1)*dx(v1) + dt*dx(u2)*dx
 
 
 problem Chaleur(u,v) = int2d(Th)( u*v +dt*K*(dx(u)*dx(v) + dy(u)*dy(v)) ) - int2d(Th)( uold*v + dt*K*(dx(uold)*dx(v) + dy(uold)*dy(v))) 
+			- int2d(Th)( (u*u1*dx(v) + u*u2*dy(v))) + int1d(Th,1,2,3,4,5,6)(u*u1*N.x*v + u*u2*N.y*v) 		//link equation stokes
 			- int2d(Th,1,2,3,4,5,6)(K*dx(u)*N.x*v + K*dy(u)*N.y*v) 
 			- int2d(Th4)(fso1()*v) - int2d(Th5)(fso2()*v) + on(1,u=0) +on(2,u=0);
 
 
-
-// Loop for plot and resolution
+//##################################################
+//  Loop for plot and resolution   ###
+//####################################
 
 for(int i = 1;i<500;i++){
     Chaleur;
     Stokes;
     uold = u;
-    //VhP modU = sqrt((u1*u1) + (u2*u2));
-    plot([u1,u2],value=true,fill = 1,wait=1);
+    VhP modU = sqrt((u1*u1) + (u2*u2));
+    //plot([u1,u2],value=true,fill = 1,wait=0);
     //plot(u,modU,value=true,fill = 1);
+    plot(u,value=true,fill = 1);
     //plot(modU,value=true,fill = 1);
 
     dt = temp + dt;
