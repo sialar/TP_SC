@@ -11,47 +11,25 @@ macro div(u1,u2) (dx(u1)+dy(u2)) //
 //##################################################
 // functions            ###
 //#########################
-func real f(){
 
-    if( sqrt( ( x-0.5 )^2 + ( y-0.75 )^2 ) < 0.12 ) {
-        return 1;
-    }
+func real fsoventilation(real t){
 
-    else{
-        return 0;
-    }
+	return (1 - exp(-t/3));			// fonction source ventilation sur ea
+	//return 50;					// fonction source ventilation temporaire
 }
-func real fso2(){
-   
-        return 0.5;
+
+func real fso2(real t){
+	//return (10^6*(1 - exp(-t)));			// vraie fonction source chaleur
+        return 0.5;					// fonction source chaleur temporaire
     
 }
 
-func real fso1(){
-   
-        return 0.5;
+func real fso1(real t){
+	//return (10^6*(1 - exp(-t)));			// vraie fonction source chaleur
+        return 0.5;					// fonction source chaleur temporaire
     
 }
 
-func real u0(){
-
-    if( sqrt( ( x-1.5 )^2 + ( y-0.25 )^2 ) < 0.2 ) {
-    
-        return 100*( 0.2 - sqrt( ( x-1.5 )^2 + ( y-0.25 )^2 ) );
-        
-    }
-
-    else{
-        return 0;
-    }  
-}
-
-func real u02(){
-    return 20;
-}
-
-
- 
 //##################################################
 // mesh                 ###
 //#########################
@@ -109,7 +87,7 @@ mesh Th5 = buildmesh(lIC2(n) + gIC2(n) + hIC2(n) + eIC2(n));
 //######################### 
 
 real theta = 1.0;
-real dt = 0.1;
+real dt = 1;
 
 plot(Th,wait=1);
 
@@ -149,9 +127,9 @@ fespace Vh3(Th,P1);
 
 
 
-uold = fso1();
-fold = fso2();
-real temp = dt;
+uold = fso1(0);
+fold = fso2(0);
+real temps = 0;
 
 
 //##################################################
@@ -182,7 +160,8 @@ problem Stokes(us,vs) = int2d(Th)(dx(us)*vs + V*((dx(us)*dx(vs)+dy(us)*dy(vs))*d
 problem Stokes([u1,u2,p],[v1,v2,q]) = int2d(Th2)(dt*dx(u1)*dx(v1) + dt*dx(u2)*dx(v2) + dt*dy(u1)*dy(v1) + dt*dy(u2)*dy(v2))
 					+ int2d(Th2)(dx(p)*v1 + dy(p)*v2) + int2d(Th2)((dx(u1) + dy(u2))*q)
 					- int2d(Th2)(dy(v1)*(T0 - u) + dy(v2)*(T0 - u))		// link equation chaleur
-					+ on(b3,eIC2,hIC2,gIC2,b2,eIC1,hIC1,gIC1,b1, u1=0, u2=0) + on(lPCB,u1=0, u2=0) + on(ea,u1=50, u2=50);
+					+ on(b3,eIC2,hIC2,gIC2,b2,eIC1,hIC1,gIC1,b1, u1=0, u2=0) + on(lPCB,u1=0, u2=0) 
+					+ on(ea,u1=fsoventilation(temps), u2=fsoventilation(temps));		//source ventilation
 
 
 
@@ -191,31 +170,65 @@ problem Stokes([u1,u2,p],[v1,v2,q]) = int2d(Th2)(dt*dx(u1)*dx(v1) + dt*dx(u2)*dx
 
 
 problem Chaleur(u,v) = int2d(Th)( u*v +dt*K*(dx(u)*dx(v) + dy(u)*dy(v)) ) - int2d(Th)( uold*v + dt*K*(dx(uold)*dx(v) + dy(uold)*dy(v))) 
-			- int2d(Th)( (u*u1*dx(v) + u*u2*dy(v))) + int1d(Th,1,2,3,4,5,6)(u*u1*N.x*v + u*u2*N.y*v) 		//link equation stokes
+			//- int2d(Th)( (u*u1*dx(v) + u*u2*dy(v))) + int1d(Th,1,2,3,4,5,6)(u*u1*N.x*v + u*u2*N.y*v) 		//link equation stokes
 			- int2d(Th,1,2,3,4,5,6)(K*dx(u)*N.x*v + K*dy(u)*N.y*v) 
-			- int2d(Th4)(fso1()*v) - int2d(Th5)(fso2()*v) + on(1,u=0) +on(2,u=0);
+			- int2d(Th4)(fso1(temps)*v) - int2d(Th5)(fso2(temps)*v) + on(1,u=0) +on(2,u=0);
 
 
 //##################################################
 //  Loop for plot and resolution   ###
 //####################################
 
-for(int i = 1;i<500;i++){
+for(int i = 1;i<1500;i++){
+
+//######################
+// Solve 
+//######################
     Chaleur;
     Stokes;
     uold = u;
+
+//######################
+// plot solution 
+//######################
     VhP modU = sqrt((u1*u1) + (u2*u2));
     //plot([u1,u2],value=true,fill = 1,wait=0);
-    //plot(u,modU,value=true,fill = 1);
-    plot(u,value=true,fill = 1);
+    plot(u,modU,value=true,fill = 1);
+    //plot(u,value=true,fill = 1);
     //plot(modU,value=true,fill = 1);
 
-    dt = temp + dt;
+//######################
+// affichage temps 
+//######################
+    cout<<"temps = "<<temps<<endl;
+    cout<<"dt = "<<dt<<endl;
+    temps = temps + dt;
+    cout<<"ventilation source = "<<fsoventilation(temps)<<endl<<endl;
+//######################
+// adaptmesh 
+//######################
   //  Th=adaptmesh(Th,u,0.5);
   //  if(i%50 == 0){
   //      plot(Th,wait = true);
   //  }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
