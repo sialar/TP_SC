@@ -194,7 +194,7 @@ problem NavierStokes(u1,u2,p,v1,v2,q,solver=Crout,init=i) =
 
 
 
-// Conditions aux bords : OK(normalement)
+// Conditions aux bords : OK(normalement) mais trop long.
 problem Chaleur(u,v) = int2d(Th)( IndTh2()*(u*v +dt*k4*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th)( IndTh2()*(uold*v + dt*k4*(dx(uold)*dx(v) + dy(uold)*dy(v)))) 
 			+ int2d(Th)( IndTh3()*(u*v +dt*k3*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th)( IndTh3()*(uold*v + dt*k3*(dx(uold)*dx(v) + dy(uold)*dy(v)))) 
 			+ int2d(Th)( IndTh4()*(u*v +dt*k1*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th)( IndTh4()*(uold*v + dt*k1*(dx(uold)*dx(v) + dy(uold)*dy(v)))) 
@@ -224,7 +224,7 @@ for(i = 1;i<1500;i++){
 //######################
     up1=u1;
     up2=u2;
-    //Chaleur;
+    Chaleur;
     NavierStokes;
     uold = u;
 
@@ -232,11 +232,11 @@ for(i = 1;i<1500;i++){
 // plot solution 
 //######################
     VhP modU = sqrt((u1*u1) + (u2*u2));
-    plot([u1,u2],value=true,fill = 1,wait=0);
+    //plot([u1,u2],value=true,fill = 1);
     //plot(u,modU,value=true,fill = 1);
     //plot(u,value=true,fill = 1);
     //plot(modU,value=true,fill = 1);
-
+    plot(u,[u1,u2],value=true,fill = 1);
 //######################
 // affichage temps 
 //######################
