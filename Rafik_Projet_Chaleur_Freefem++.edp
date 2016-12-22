@@ -1,0 +1,143 @@
+verbosity=0;
+
+//	##############
+//	### Macros ###
+//	##############
+macro Grad(u)[dx(u),dy(u)] 					//
+macro div(u) (dx(u)+dy(u))					//
+
+//	###################################
+//	### fonctions carracteristiques ###
+//	###################################
+func real IndTh1()
+//	Indicatrice Omega 1 (Th1)
+{
+	if (1.0<=x<=2.0 && 1.0<=y<=2.2) { return 1;	}
+	return 0;
+}
+
+func real IndTh2()
+//	Indicatrice Omega 2 (Th2)
+{
+	if (1.0<=x<=2.0 && 3.0<=y<=4.2) { return 1; }
+	return 0;
+}
+
+func real IndTh3()
+//	Indicatrice Omega 3 (Th3)
+{
+	if (x<=1.0) { return 1; }
+	return 0;
+}
+
+func real IndTh4()
+//	Indicatrice Omega 4 (Th4)
+{
+	if ((2.0<=x<=3.0) ||
+			(1.0<=x<=2.0 && 4.2<=y) ||
+			(1.0<=x<=2.0 && 2.2<=y<=3.0) ||
+			(1.0<=x<=2.0 && y<=1.0))
+	{ return 1; }
+	return 0;
+}
+
+
+//	############
+//	### mesh ###
+//	############
+int n = 20;
+
+border ePCB(t=0, 1.0){x=t; y=0; label=1 ;} ;
+border ea(t=1.0, 3.0){x=t; y=0; label=2 ;} ;
+border lPCB(t=0, 5.0){x=3.0; y=t; label=3;} ;
+border ga(t=3.0, 1.0){x=t; y=5.0; label=4;} ;
+border gPCB(t=1.0, 0){x=t; y=5.0; label=5;} ;
+border hPCB(t=5.0, 0){x=0; y=t; label=6 ;} ;
+
+border lIC1(t=2.2, 1.0){x=1.0; y=t; label=7;} ;
+border gIC1(t=1.0, 2.0){x=t; y= 1.0; label=8;} ;
+border hIC1(t=1.0, 2.2){x=2.0; y=t; label=9;} ;
+border eIC1(t=2.0, 1.0){x=t; y= 2.2; label=10;} ;
+
+border lIC2(t=4.2, 3.0){x=1.0; y=t; label=11;} ;
+border gIC2(t=1.0, 2.0){x=t; y= 3.0; label=12;} ;
+border hIC2(t=3.0, 4.2){x=2.0; y=t; label=13;} ;
+border eIC2(t=2.0, 1.0){x=t; y= 4.2; label=14;} ;
+
+border b1(t=0.0, 1.0){x=1.0; y=t; label=15;} ;
+border b2(t=2.2, 3.0){x=1.0; y=t; label=16;} ;
+border b3(t=4.2, 5.0){x=1.0; y=t; label=17;} ;
+
+mesh Th = buildmesh	(
+											ePCB(n) + ea(n) + hPCB(n) + gPCB(n) + ga(n) + lPCB(n) +
+											lIC1(n) + hIC1(n) + eIC1(n) + gIC1(n) +
+											lIC2(n) + hIC2(n) + eIC2(n) + gIC2(n) +
+											b1(n) + b2(n) + b3(n)
+									 	);
+
+mesh Th1 = buildmesh(lIC1(n) + gIC1(n) + hIC1(n) + eIC1(n));
+mesh Th2 = buildmesh(lIC2(n) + gIC2(n) + hIC2(n) + eIC2(n));
+mesh Th3 = buildmesh(ePCB(n) + b1(n) + lIC1(-n) + b2(n) + lIC2(-n) + b3(n) + gPCB(n) + hPCB(n));
+mesh Th4 = buildmesh(ea(n) + lPCB(n) + ga(n) + b3(-n) + eIC2(-n) + hIC2(-n) + gIC2(-n) + b2(-n) + eIC1(-n) + hIC1(-n) + gIC1(-n) + b1(-n));
+plot(Th,wait=1);
+
+
+//	#################
+//	### variables ###
+//	#################
+real dt = 0.1;
+real T0 = 1;
+real kIC = 2;
+real k3 = 0.2;
+real k4 = 0.02;
+real roCIC = 0.14;
+real roC3 = 0.2;
+real roC4 = 0.01;
+real Q = 10;
+
+//	##############
+//	### spaces ###
+//	##############
+fespace VhT(Th, P1);
+VhT u,v, uold;
+uold = 0;
+real temps = 0;
+int i = 0;
+
+//	#################################
+//	### variationals formulations ###
+//	#################################
+
+problem Chaleur(u,v) =
+
+				int2d(Th)( IndTh1() * (roCIC*u*v + dt*kIC*Grad(u)'*Grad(v)) ) - int2d(Th1)(roCIC*uold*v)
+			+ int2d(Th)( IndTh2() * (roCIC*u*v + dt*kIC*Grad(u)'*Grad(v)) ) - int2d(Th2)(roCIC*uold*v)
+			+ int2d(Th)( IndTh3() * (roC3*u*v + dt*k3*Grad(u)'*Grad(v)) ) - int2d(Th3)(roC3*uold*v)
+			+	int2d(Th)( IndTh4() * (roC4*u*v + dt*k4*Grad(u)'*Grad(v)) ) - int2d(Th4)(roC4*uold*v)
+			// conditions bords
+			- int1d(Th,15,16,17)( IndTh4() * dt * (k4*Grad(u)'*[N.x,N.y])*v )
+			- int1d(Th,15,16,17)(	IndTh3() * dt * (k3*Grad(u)'*[N.x,N.y])*v )
+			// Sources
+			- int2d(Th1)(dt*Q*v) - int2d(Th2)(dt*Q*v)
+			+ on(1,u=T0) + on(2,u=T0);
+
+//	####################################
+//	### Loop for plot and resolution ###
+//	####################################
+for(i = 1;i<1500;i++)
+{
+//	#############
+//	### Solve ###
+//	#############
+    Chaleur;
+    uold = u;
+//	#####################
+//	### plot solution ###
+//	#####################
+    plot(u,value=true,fill = 1);
+//	#######################
+//	### affichage temps ###
+//	#######################
+		cout<<"curent_t = "<<temps<<endl;
+		temps = temps + dt;
+}
