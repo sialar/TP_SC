@@ -50,6 +50,23 @@ func real IndTh4()
 	return 0;
 }
 
+//##################################################
+// functions sources    ###
+//#########################
+
+func real fsoventilation(real t)
+{
+		return (1.2 - exp(-t/3));				// fonction source ventilation sur ea
+}
+func real fso2(real t)
+{
+		return 1;//(10^6*(1 - exp(-t)));			// vraie fonction source chaleur
+}
+func real fso1(real t)
+{
+		return 1;//(10^6*(1 - exp(-t)));			// vraie fonction source chaleur
+}
+
 
 //	############
 //	### mesh ###
@@ -104,27 +121,63 @@ real roC3 = 2;
 real roC4 = 0.1;
 real Q = 100;
 
+real nu = 0.0025;
+real mu=0.05;
+real epsv = 1e-6, epsu = 1e-6, epsp = 1e-6;
+real alpha=1/dt;
+
 //	##############
 //	### spaces ###
 //	##############
 fespace VhT(Th, P1);
 VhT u,v, uold;
-uold = 0;
+
+fespace VhP(Th4, P1);
+VhP p,q;
+
+fespace VhU(Th4, P2);
+VhU u1,u2,v1,v2;
+VhU up1,up2;
+
+uold = fso1(0);
 real temps = 0;
 int i = 0;
 
 //	#################################
 //	### variationals formulations ###
 //	#################################
+//Fonctionne enfin
+problem NavierStokes(u1,u2,p,v1,v2,q,solver=Crout,init=i) =
+				int2d(Th4)(
+					alpha*(u1*v1 + u2*v2)
+					+ nu*( dx(u1)*dx(v1)+dy(u1)*dy(v1)+dx(u2)*dx(v2)+dy(u2)*dy(v2))
+					+ p*q*(0.001)
+					+ p*dx(v1)+ p*dy(v2)
+					+ dx(u1)*q+ dy(u2)*q
+					)
+				+	int2d(Th4) ( -alpha*convect([up1,up2],-dt,up1)*v1 -alpha*convect([up1,up2],-dt,up2)*v2)
+				// link equation chaleur ( marche pas )
+				- int2d(Th2)(dy(v1)*(T0 - u) + dy(v2)*(T0 - u))
+				// conditions aux bords
+				+ on(8,9,10,12,13,14,15,16,17, u1=0, u2=0) + on(3,u1=0, u2=0)
+				+ on(2,u1=fsoventilation(temps), u2=fsoventilation(temps));
+
 
 problem Chaleur(u,v) =
 				int2d(Th)( IndTh1() * (roCIC*u*v + dt*kIC*Grad(u)'*Grad(v)) ) - int2d(Th1)(roCIC*uold*v + dt*Q*v)
 			+ int2d(Th)( IndTh2() * (roCIC*u*v + dt*kIC*Grad(u)'*Grad(v)) ) - int2d(Th2)(roCIC*uold*v + dt*Q*v)
 			+ int2d(Th)( IndTh3() * (roC3*u*v + dt*k3*Grad(u)'*Grad(v)) ) - int2d(Th3)(roC3*uold*v)
 			+	int2d(Th)( IndTh4() * (roC4*u*v + dt*k4*Grad(u)'*Grad(v)) ) - int2d(Th4)(roC4*uold*v)
-			// conditions bords
+			// link equation stokes
+			- int2d(Th)( IndTh1()*( roCIC*Grad(u)'*[u1,u2]*v))
+			- int2d(Th)( IndTh2()*( roCIC*Grad(u)'*[u1,u2]*v))
+			- int2d(Th)( IndTh3()*( roC3*Grad(u)'*[u1,u2]*v))
+			- int2d(Th)( IndTh4()*( roC4*Grad(u)'*[u1,u2]*v))
+			// conditions aux bords
 			- int1d(Th,15,16,17)( IndTh4() * dt * (k4*Grad(u)'*[N.x,N.y])*v )
 			- int1d(Th,15,16,17)(	IndTh3() * dt * (k3*Grad(u)'*[N.x,N.y])*v )
+			- int1d(Th,4)(IndTh4()*[u1,u2]'*[N.x,N.y]*u*v) // si avec ventilation
+			// sources
 			+ on(1,u=T0) + on(2,u=T0);
 
 //	####################################
@@ -135,15 +188,30 @@ for(i = 1;i<1500;i++)
 //	#############
 //	### Solve ###
 //	#############
-    Chaleur;
-    uold = u;
+		up1=u1;
+		up2=u2;
+		Chaleur;
+		NavierStokes;
+		uold = u;
+		VhP modU = sqrt((u1*u1) + (u2*u2));
 //	#####################
 //	### plot solution ###
 //	#####################
-    plot(u,value=true,fill = 1);
+		//plot(u,value=true,fill = 1); // Chaleur seul
+		//plot([u1,u2],value=true,fill = 1);	 // Navier Stokes seul
+		//plot(modU,value=true,fill = 1);			 // Navier Stokes module seul
+		//plot(u,[u1,u2],value=true,fill = 1); // Navier Stokes + cheleur
+		plot(u,modU,value=true,fill = 1);		 // Navier Stokes module + cheleur
 //	#######################
 //	### affichage temps ###
 //	#######################
-		cout<<"curentt = "<<temps<<endl;
+		cout<<"t courant = "<<temps<<endl;
 		temps = temps + dt;
+		cout<<"ventilation source = "<<fsoventilation(temps)<<endl<<endl;
+		//######################
+		// adaptmesh
+		//######################
+		Th=adaptmesh(Th,u,0.5);
+		if(i%50 == 0)
+			plot(Th,wait = true);
 }
