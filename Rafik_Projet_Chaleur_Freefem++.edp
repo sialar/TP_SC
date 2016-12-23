@@ -1,5 +1,14 @@
 verbosity=0;
 
+real eAlen = 2;
+real ePCBlen = 1;
+real hPCBlen = 6;
+real hIClen = 1.2;
+real eIClen = 1;
+real maxwidth = ePCBlen + eAlen;
+real h1len = 1.2;
+real h2len = 3.4;
+
 //	##############
 //	### Macros ###
 //	##############
@@ -12,31 +21,31 @@ macro div(u) (dx(u)+dy(u))					//
 func real IndTh1()
 //	Indicatrice Omega 1 (Th1)
 {
-	if (1.0<=x<=2.0 && 1.0<=y<=2.2) { return 1;	}
+	if (ePCBlen<=x<=ePCBlen+eIClen && h1len<=y<=h1len+hIClen) { return 1;	}
 	return 0;
 }
 
 func real IndTh2()
 //	Indicatrice Omega 2 (Th2)
 {
-	if (1.0<=x<=2.0 && 3.0<=y<=4.2) { return 1; }
+	if (ePCBlen<=x<=ePCBlen+eIClen && h2len<=y<=h2len+hIClen) { return 1; }
 	return 0;
 }
 
 func real IndTh3()
 //	Indicatrice Omega 3 (Th3)
 {
-	if (x<=1.0) { return 1; }
+	if (x<=ePCBlen) { return 1; }
 	return 0;
 }
 
 func real IndTh4()
 //	Indicatrice Omega 4 (Th4)
 {
-	if ((2.0<=x<=3.0) ||
-			(1.0<=x<=2.0 && 4.2<=y) ||
-			(1.0<=x<=2.0 && 2.2<=y<=3.0) ||
-			(1.0<=x<=2.0 && y<=1.0))
+	if ((ePCBlen+eIClen<=x<=maxwidth) ||
+			(ePCBlen<=x<=ePCBlen+eIClen && h2len+hIClen<=y) ||
+			(ePCBlen<=x<=ePCBlen+eIClen && h1len+hIClen<=y<=h2len) ||
+			(ePCBlen<=x<=ePCBlen+eIClen && y<=h1len))
 	{ return 1; }
 	return 0;
 }
@@ -47,26 +56,26 @@ func real IndTh4()
 //	############
 int n = 20;
 
-border ePCB(t=0, 1.0){x=t; y=0; label=1 ;} ;
-border ea(t=1.0, 3.0){x=t; y=0; label=2 ;} ;
-border lPCB(t=0, 5.0){x=3.0; y=t; label=3;} ;
-border ga(t=3.0, 1.0){x=t; y=5.0; label=4;} ;
-border gPCB(t=1.0, 0){x=t; y=5.0; label=5;} ;
-border hPCB(t=5.0, 0){x=0; y=t; label=6 ;} ;
+border ePCB(t=0, ePCBlen)						{x=t; y=0; label=1 ;} ;
+border ea(t=ePCBlen, maxwidth)			{x=t; y=0; label=2 ;} ;
+border lPCB(t=0, hPCBlen)						{x=maxwidth; y=t; label=3;} ;
+border ga(t=maxwidth, ePCBlen)			{x=t; y=hPCBlen; label=4;} ;
+border gPCB(t=ePCBlen, 0)						{x=t; y=hPCBlen; label=5;} ;
+border hPCB(t=hPCBlen, 0)						{x=0; y=t; label=6 ;} ;
 
-border lIC1(t=2.2, 1.0){x=1.0; y=t; label=7;} ;
-border gIC1(t=1.0, 2.0){x=t; y= 1.0; label=8;} ;
-border hIC1(t=1.0, 2.2){x=2.0; y=t; label=9;} ;
-border eIC1(t=2.0, 1.0){x=t; y= 2.2; label=10;} ;
+border lIC1(t=h1len+hIClen, h1len)			{x=ePCBlen; y=t; label=7;} ;
+border gIC1(t=ePCBlen, ePCBlen+eIClen)	{x=t; y= h1len; label=8;} ;
+border hIC1(t=h1len, h1len+hIClen)			{x=ePCBlen+eIClen; y=t; label=9;} ;
+border eIC1(t=ePCBlen+eIClen, ePCBlen)	{x=t; y= h1len+hIClen; label=10;} ;
 
-border lIC2(t=4.2, 3.0){x=1.0; y=t; label=11;} ;
-border gIC2(t=1.0, 2.0){x=t; y= 3.0; label=12;} ;
-border hIC2(t=3.0, 4.2){x=2.0; y=t; label=13;} ;
-border eIC2(t=2.0, 1.0){x=t; y= 4.2; label=14;} ;
+border lIC2(t=h2len+hIClen, h2len)			{x=ePCBlen; y=t; label=11;} ;
+border gIC2(t=ePCBlen, ePCBlen+eIClen)	{x=t; y= h2len; label=12;} ;
+border hIC2(t=h2len, h2len+hIClen)			{x=ePCBlen+eIClen; y=t; label=13;} ;
+border eIC2(t=ePCBlen+eIClen, ePCBlen)	{x=t; y= h2len+hIClen; label=14;} ;
 
-border b1(t=0.0, 1.0){x=1.0; y=t; label=15;} ;
-border b2(t=2.2, 3.0){x=1.0; y=t; label=16;} ;
-border b3(t=4.2, 5.0){x=1.0; y=t; label=17;} ;
+border b1(t=0.0, h1len)									{x=ePCBlen; y=t; label=15;} ;
+border b2(t=h1len+hIClen, h2len)				{x=ePCBlen; y=t; label=16;} ;
+border b3(t=h2len+hIClen, hPCBlen)			{x=ePCBlen; y=t; label=17;} ;
 
 mesh Th = buildmesh	(
 											ePCB(n) + ea(n) + hPCB(n) + gPCB(n) + ga(n) + lPCB(n) +
@@ -74,26 +83,26 @@ mesh Th = buildmesh	(
 											lIC2(n) + hIC2(n) + eIC2(n) + gIC2(n) +
 											b1(n) + b2(n) + b3(n)
 									 	);
+plot(Th,wait=1);
 
 mesh Th1 = buildmesh(lIC1(n) + gIC1(n) + hIC1(n) + eIC1(n));
 mesh Th2 = buildmesh(lIC2(n) + gIC2(n) + hIC2(n) + eIC2(n));
 mesh Th3 = buildmesh(ePCB(n) + b1(n) + lIC1(-n) + b2(n) + lIC2(-n) + b3(n) + gPCB(n) + hPCB(n));
 mesh Th4 = buildmesh(ea(n) + lPCB(n) + ga(n) + b3(-n) + eIC2(-n) + hIC2(-n) + gIC2(-n) + b2(-n) + eIC1(-n) + hIC1(-n) + gIC1(-n) + b1(-n));
-plot(Th,wait=1);
 
 
 //	#################
 //	### variables ###
 //	#################
 real dt = 0.1;
-real T0 = 1;
-real kIC = 2;
-real k3 = 0.2;
-real k4 = 0.02;
-real roCIC = 0.14;
-real roC3 = 0.2;
-real roC4 = 0.01;
-real Q = 10;
+real T0 = 0.5;
+real kIC = 20;
+real k3 = 5;
+real k4 = 1;
+real roCIC = 1.4;
+real roC3 = 2;
+real roC4 = 0.1;
+real Q = 100;
 
 //	##############
 //	### spaces ###
@@ -109,16 +118,13 @@ int i = 0;
 //	#################################
 
 problem Chaleur(u,v) =
-
-				int2d(Th)( IndTh1() * (roCIC*u*v + dt*kIC*Grad(u)'*Grad(v)) ) - int2d(Th1)(roCIC*uold*v)
-			+ int2d(Th)( IndTh2() * (roCIC*u*v + dt*kIC*Grad(u)'*Grad(v)) ) - int2d(Th2)(roCIC*uold*v)
+				int2d(Th)( IndTh1() * (roCIC*u*v + dt*kIC*Grad(u)'*Grad(v)) ) - int2d(Th1)(roCIC*uold*v + dt*Q*v)
+			+ int2d(Th)( IndTh2() * (roCIC*u*v + dt*kIC*Grad(u)'*Grad(v)) ) - int2d(Th2)(roCIC*uold*v + dt*Q*v)
 			+ int2d(Th)( IndTh3() * (roC3*u*v + dt*k3*Grad(u)'*Grad(v)) ) - int2d(Th3)(roC3*uold*v)
 			+	int2d(Th)( IndTh4() * (roC4*u*v + dt*k4*Grad(u)'*Grad(v)) ) - int2d(Th4)(roC4*uold*v)
 			// conditions bords
 			- int1d(Th,15,16,17)( IndTh4() * dt * (k4*Grad(u)'*[N.x,N.y])*v )
 			- int1d(Th,15,16,17)(	IndTh3() * dt * (k3*Grad(u)'*[N.x,N.y])*v )
-			// Sources
-			- int2d(Th1)(dt*Q*v) - int2d(Th2)(dt*Q*v)
 			+ on(1,u=T0) + on(2,u=T0);
 
 //	####################################
@@ -138,6 +144,6 @@ for(i = 1;i<1500;i++)
 //	#######################
 //	### affichage temps ###
 //	#######################
-		cout<<"curent_t = "<<temps<<endl;
+		cout<<"curentt = "<<temps<<endl;
 		temps = temps + dt;
 }
