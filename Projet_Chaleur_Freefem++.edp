@@ -195,10 +195,10 @@ problem NavierStokes(u1,u2,p,v1,v2,q,solver=Crout,init=i) =
 
 
 // Conditions aux bords : OK(normalement) mais trop long.
-problem Chaleur(u,v) = int2d(Th)( IndTh2()*(u*v +dt*k4*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th)( IndTh2()*(uold*v + dt*k4*(dx(uold)*dx(v) + dy(uold)*dy(v)))) 
-			+ int2d(Th)( IndTh3()*(u*v +dt*k3*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th)( IndTh3()*(uold*v + dt*k3*(dx(uold)*dx(v) + dy(uold)*dy(v)))) 
-			+ int2d(Th)( IndTh4()*(u*v +dt*k1*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th)( IndTh4()*(uold*v + dt*k1*(dx(uold)*dx(v) + dy(uold)*dy(v)))) 
-			+ int2d(Th)( IndTh5()*(u*v +dt*k2*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th)( IndTh5()*(uold*v + dt*k2*(dx(uold)*dx(v) + dy(uold)*dy(v)))) 
+problem Chaleur(u,v) = int2d(Th)( IndTh2()*(u*v +dt*k4*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th2)( uold*v + dt*k4*(dx(uold)*dx(v) + dy(uold)*dy(v))) 
+			+ int2d(Th)( IndTh3()*(u*v +dt*k3*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th3)( uold*v + dt*k3*(dx(uold)*dx(v) + dy(uold)*dy(v))) 
+			+ int2d(Th)( IndTh4()*(u*v +dt*k1*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th4)( uold*v + dt*k1*(dx(uold)*dx(v) + dy(uold)*dy(v))) 
+			+ int2d(Th)( IndTh5()*(u*v +dt*k2*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th5)( uold*v + dt*k2*(dx(uold)*dx(v) + dy(uold)*dy(v))) 
 			//link equation stokes 
 			- int2d(Th)( IndTh2()*( (u*u1*dx(v) + u*u2*dy(v)))) + int1d(Th,2,3,17,14,13,12,16,10,9,8,15)(IndTh2()*(u*u1*N.x*v + u*u2*N.y*v)) 
 			- int2d(Th)( IndTh3()*( (u*u1*dx(v) + u*u2*dy(v)))) + int1d(Th,1,15,7,16,11,17,5,6)(IndTh3()*(u*u1*N.x*v + u*u2*N.y*v)) 
