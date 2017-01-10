@@ -1,0 +1,274 @@
+verbosity=0;
+
+
+//##################################################
+// Macros               ###
+//#########################
+macro Grad(u1,u2) [ dx(u1),dy(u1) , dx(u2),dy(u2) ] //
+macro UgradV(u1,u2,v1,v2) [ [u1,u2]'*[dx(v1),dy(v1)] , [u1,u2]'*[dx(v2),dy(v2)] ] //
+macro div(u1,u2) (dx(u1)+dy(u2)) //
+
+//##################################################
+// functions sources    ###
+//#########################
+
+func real fsoventilation(real t){
+
+	//return (1 - exp(-t/3));				// fonction source ventilation sur ea
+	return 0.5;					// fonction source ventilation temporaire
+}
+
+func real fso2(real t){
+	//return (10^6*(1 - exp(-t)));			// vraie fonction source chaleur
+        return 1;					// fonction source chaleur temporaire
+    
+}
+
+func real fso1(real t){
+	//return (10^6*(1 - exp(-t)));			// vraie fonction source chaleur
+        return 1;					// fonction source chaleur temporaire
+    
+}
+
+//##################################################
+// Functions carracteristiques   ###
+//##################################
+
+func real IndTh2(){						//indicatrice Domaine Th2
+	if(2.0<=x<=3.0 || 1.0<=x<=2.0 && 4.2<=y || 1.0<=x<=2.0 && 2.2<=y<=3.0 || 1.0<=x<=2.0 && y<=1.0){
+		return 1;
+	}
+/*			
+	else if(1.0<=x<=2.0 && 4.2<=y){
+		return 1;
+	}
+	else if(1.0<=x<=2.0 && 2.2<=y<=3.0){
+		return 1;
+	}
+	else if(1.0<=x<=2.0 && y<=1.0){
+		return 1;
+	}
+*/
+	return 0;
+}
+
+
+func real IndTh3(){						//indicatrice Domaine Th3
+	if(x<=1.0){
+		return 1;
+	}			
+	return 0;
+}
+
+
+func real IndTh4(){						//indicatrice Domaine Th4
+	if(1.0<=x<=2.0 && 1.0<=y<=2.2){
+		return 1;
+	}			
+	return 0;
+}
+
+func real IndTh5(){						//indicatrice Domaine Th5
+	if(1.0<=x<=2.0 && 3.0<=y<=4.2){
+		return 1;
+	}			
+	return 0;
+}
+
+
+//##################################################
+// mesh                 ###
+//#########################
+
+int n = 20;
+
+border ePCB(t=0, 1.0){x=t; y=0; label=1 ;} ;
+border ea(t=1.0, 3.0){x=t; y=0; label=2 ;} ;
+border lPCB(t=0, 5.0){x=3.0; y=t; label=3;} ;
+border ga(t=3.0, 1.0){x=t; y=5.0; label=4;} ;
+border gPCB(t=1.0, 0){x=t; y=5.0; label=5;} ;
+border hPCB(t=5.0, 0){x=0; y=t; label=6 ;} ;
+
+
+
+border lIC1(t=2.2, 1.0){x=1.0; y=t; label=7;} ;
+border gIC1(t=1.0, 2.0){x=t; y= 1.0; label=8;} ;
+border hIC1(t=1.0, 2.2){x=2.0; y=t; label=9;} ;
+border eIC1(t=2.0, 1.0){x=t; y= 2.2; label=10;} ;
+
+border lIC2(t=4.2, 3.0){x=1.0; y=t; label=11;} ;
+border gIC2(t=1.0, 2.0){x=t; y= 3.0; label=12;} ;
+border hIC2(t=3.0, 4.2){x=2.0; y=t; label=13;} ;
+border eIC2(t=2.0, 1.0){x=t; y= 4.2; label=14;} ;
+
+border b1(t=0.0, 1.0){x=1.0; y=t; label=15;} ;
+border b2(t=2.2, 3.0){x=1.0; y=t; label=16;} ;
+border b3(t=4.2, 5.0){x=1.0; y=t; label=17;} ;
+
+
+mesh Th = buildmesh(ePCB(n) + ea(n) + hPCB(n) + gPCB(n) + ga(n) + lPCB(n)
++ lIC1(n) + hIC1(n) + eIC1(n) + gIC1(n)
++ lIC2(n) + hIC2(n) + eIC2(n) + gIC2(n)
++ b1(n) + b2(n) + b3(n));
+
+
+
+//mesh Th1 = buildmesh(ea(n) + lPCB(n) + ga(n) + b3(-n) + lIC2(n) + b2(-n) + lIC1(n) + b1(-n));
+
+mesh Th2 = buildmesh(ea(n) + lPCB(n) + ga(n) + b3(-n) + eIC2(-n) + hIC2(-n) + gIC2(-n) + b2(-n) + eIC1(-n) + hIC1(-n) + gIC1(-n) + b1(-n));
+
+mesh Th3 = buildmesh(ePCB(n) + b1(n) + lIC1(-n) + b2(n) + lIC2(-n) + b3(n) + gPCB(n) + hPCB(n));
+
+mesh Th4 = buildmesh(lIC1(n) + gIC1(n) + hIC1(n) + eIC1(n));
+
+mesh Th5 = buildmesh(lIC2(n) + gIC2(n) + hIC2(n) + eIC2(n));
+
+
+//mesh Th = Th2 + Th3 + Th4 + Th5;
+
+
+
+//##################################################
+// variables            ###
+//######################### 
+
+real theta = 1.0;
+real dt = 0.1;
+
+plot(Th,wait=1);
+
+real T=5;
+real mu=0.05;
+real T0=0.2;
+real k3 = 0.3;
+real k4 = 0.3;
+real k1 = 0.3;
+real k2 = k1;
+real K = 0.3;
+
+real nu = 0.0025;	
+real epsv = 1e-6, epsu = 1e-6, epsp = 1e-6;	
+real alpha=1/dt;
+
+
+ 
+//##################################################
+// spaces               ###
+//######################### 
+
+fespace VhT(Th, P1);
+VhT u,v, uold;  //vhT
+
+fespace VhP(Th2, P1);
+VhP p,q;            // vhP
+
+fespace VhU(Th2, P2);
+VhU u1,u2,v1,v2;    //vhU
+VhU up1,up2;
+
+
+
+
+
+uold = fso1(0);
+real temps = 0;
+int i = 0;
+
+//##################################################
+// variationals formulations     ###
+//##################################
+
+
+
+//Fonctionne enfin
+problem NavierStokes(u1,u2,p,v1,v2,q,solver=Crout,init=i) =
+				int2d(Th2)(alpha*( u1*v1 + u2*v2)+ nu * ( dx(u1)*dx(v1) + dy(u1)*dy(v1)+  dx(u2)*dx(v2) + dy(u2)*dy(v2) )
+					+ p*q*(0.000001)
+					+ p*dx(v1)+ p*dy(v2)
+					+ dx(u1)*q+ dy(u2)*q
+					)
+				+int2d(Th2) ( -alpha*convect([up1,up2],-dt,up1)*v1 -alpha*convect([up1,up2],-dt,up2)*v2)
+				//- int2d(Th2)(dy(v1)*(T0 - u) + dy(v2)*(T0 - u))		// link equation chaleur ( marche pas )
+				+ on(b3,eIC2,hIC2,gIC2,b2,eIC1,hIC1,gIC1,b1, u1=0, u2=0) + on(lPCB,u1=0, u2=0) 
+				+ on(ea,u1=fsoventilation(temps), u2=fsoventilation(temps));
+
+
+
+// Conditions aux bords : OK(normalement) mais trop long.
+problem Chaleur(u,v) = int2d(Th)( IndTh2()*(u*v +dt*k4*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th2)( uold*v + dt*k4*(dx(uold)*dx(v) + dy(uold)*dy(v))) 
+			+ int2d(Th)( IndTh3()*(u*v +dt*k3*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th3)( uold*v + dt*k3*(dx(uold)*dx(v) + dy(uold)*dy(v))) 
+			+ int2d(Th)( IndTh4()*(u*v +dt*k1*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th4)( uold*v + dt*k1*(dx(uold)*dx(v) + dy(uold)*dy(v))) 
+			+ int2d(Th)( IndTh5()*(u*v +dt*k2*(dx(u)*dx(v) + dy(u)*dy(v))) ) - int2d(Th5)( uold*v + dt*k2*(dx(uold)*dx(v) + dy(uold)*dy(v))) 
+			//link equation stokes 
+			- int2d(Th)( IndTh2()*( (u*u1*dx(v) + u*u2*dy(v)))) + int1d(Th,2,3,17,14,13,12,16,10,9,8,15)(IndTh2()*(u*u1*N.x*v + u*u2*N.y*v)) 
+			- int2d(Th)( IndTh3()*( (u*u1*dx(v) + u*u2*dy(v)))) + int1d(Th,1,15,7,16,11,17,5,6)(IndTh3()*(u*u1*N.x*v + u*u2*N.y*v)) 
+			- int2d(Th)( IndTh4()*( (u*u1*dx(v) + u*u2*dy(v)))) + int1d(Th,7,8,9,10)(IndTh4()*(u*u1*N.x*v + u*u2*N.y*v))   
+			- int2d(Th)( IndTh5()*( (u*u1*dx(v) + u*u2*dy(v)))) + int1d(Th,11,12,13,14)(IndTh5()*(u*u1*N.x*v + u*u2*N.y*v)) 
+			// conditions bords
+			- int1d(Th,2,17,14,13,12,16,10,9,8,15)(IndTh2()*( k4*dx(u)*v*N.x + k4*dy(u)*v*N.y) ) 
+			- int1d(Th,1,15,7,16,11,17)(IndTh3()*( k3*dx(u)*v*N.x + k3*dy(u)*v*N.y) ) 
+			- int1d(Th,8,9,10,12,13,14)(IndTh2()*( k4*dx(u)*v*N.x + k4*dy(u)*v*N.y) ) 
+			- int1d(Th,7,11)(IndTh3()*( k3*dx(u)*v*N.x + k3*dy(u)*v*N.y) ) 
+			// Sources
+			- int2d(Th4)(fso1(temps)*v) - int2d(Th5)(fso2(temps)*v) + on(1,u=T0) +on(2,u=T0);
+
+
+//##################################################
+//  Loop for plot and resolution   ###
+//####################################
+
+for(i = 1;i<1500;i++){
+
+//######################
+// Solve 
+//######################
+    up1=u1;
+    up2=u2;
+    Chaleur;
+    NavierStokes;
+    uold = u;
+
+//######################
+// plot solution 
+//######################
+    VhP modU = sqrt((u1*u1) + (u2*u2));
+    //plot([u1,u2],value=true,fill = 1);
+    //plot(u,modU,value=true,fill = 1);
+    //plot(u,value=true,fill = 1);
+    //plot(modU,value=true,fill = 1);
+    plot(u,[u1,u2],value=true,fill = 1);
+//######################
+// affichage temps 
+//######################
+    cout<<"temps = "<<temps<<endl;
+    cout<<"dt = "<<dt<<endl;
+    temps = temps + dt;
+    cout<<"ventilation source = "<<fsoventilation(temps)<<endl<<endl;
+//######################
+// adaptmesh 
+//######################
+  //  Th=adaptmesh(Th,u,0.5);
+  //  if(i%50 == 0){
+  //      plot(Th,wait = true);
+  //  }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
