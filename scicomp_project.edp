@@ -113,17 +113,16 @@ mesh Th4 = buildmesh(ea(n) + lPCB(n) + ga(n) + b3(-n) + eIC2(-n) + hIC2(-n) + gI
 //	#################
 real dt = 0.1;
 real T0 = 300;
-real kIC = 20;
-real k3 = 5;
-real k4 = 1;
+real kIC = 2;
+real k3 = 0.2;
+real k4 = 0.03;
 real roCIC = 1.4;
 real roC3 = 2;
 real roC4 = 0.1;
-real Q = 100000;
-
-real nu = 0.0025;
-real mu=0.05;
-real epsv = 1e-6, epsu = 1e-6, epsp = 1e-6;
+real Q = 1000000;
+real rhof = 1;
+real mu = 0.0025;
+real nu = mu / rhof;
 real alpha=1/dt;
 
 //	##############
@@ -163,8 +162,8 @@ problem NavierStokes(u1,u2,p,v1,v2,q,solver=Crout,init=i) =
 					alpha*(u1*v1 + u2*v2)
 					+ nu*( dx(u1)*dx(v1)+dy(u1)*dy(v1)+dx(u2)*dx(v2)+dy(u2)*dy(v2))
 					+ p*q*(0.000001)
-					+ p*dx(v1)+ p*dy(v2)
-					+ dx(u1)*q+ dy(u2)*q
+					+ (1./rhof)*(p*dx(v1)+ p*dy(v2))
+					+ (1./rhof)*(dx(u1)*q+ dy(u2)*q)
 					)
 				+	int2d(Th4) ( -alpha*convect([up1,up2],-dt,up1)*v1 -alpha*convect([up1,up2],-dt,up2)*v2)
 				// link equation chaleur ( marche pas )
@@ -202,8 +201,8 @@ for(i = 1;i<1500;i++)
 		up1=u1;
 		up2=u2;
 		Chaleur;
-		//NavierStokes;
-		Stokes;
+		NavierStokes;
+		//Stokes;
 		uold = u;
 		VhP modU = sqrt((u1*u1) + (u2*u2));
 //	#####################
