@@ -56,15 +56,15 @@ func real IndTh4()
 
 func real fsoventilation(real t)
 {
-		return (1.2 - exp(-t/3));				// fonction source ventilation sur ea
+		return (1 - exp(-t/3));				// fonction source ventilation sur ea
 }
-func real fso2(real t)
+func real fso2(real t,real Q)
 {
-		return 1;//(10^6*(1 - exp(-t)));			// vraie fonction source chaleur
+		return Q*(1 - exp(-t));			// vraie fonction source chaleur
 }
-func real fso1(real t)
+func real fso1(real t,real Q)
 {
-		return 1;//(10^6*(1 - exp(-t)));			// vraie fonction source chaleur
+		return Q*(1 - exp(-t));			// vraie fonction source chaleur
 }
 
 
@@ -139,19 +139,29 @@ fespace VhU(Th4, P2);
 VhU u1,u2,v1,v2;
 VhU up1,up2;
 
-uold = fso1(0);
+uold = fso1(0,Q);
 real temps = 0;
 int i = 0;
 
 //	#################################
 //	### variationals formulations ###
 //	#################################
-//Fonctionne enfin
+/*
+problem Stokes(u1,u2,p,v1,v2,q,solver=Crout) =
+				int2d(Th2)( ( dx(u1)*dx(v1) + dy(u1)*dy(v1) + dx(u2)*dx(v2) + dy(u2)*dy(v2) )
+					+ p*q*(0.000001)
+					+ p*dx(v1)+ p*dy(v2)
+					+ dx(u1)*q+ dy(u2)*q
+				)
+				//- int2d(Th2)(dy(v1)*(T0 - u) + dy(v2)*(T0 - u))		// link equation chaleur
+				+ on(b3,eIC2,hIC2,gIC2,b2,eIC1,hIC1,gIC1,b1, u1=0, u2=0) + on(lPCB,u1=0, u2=0)
+				+ on(ea,u1=fsoventilation(temps), u2=fsoventilation(temps));
+*/
 problem NavierStokes(u1,u2,p,v1,v2,q,solver=Crout,init=i) =
 				int2d(Th4)(
 					alpha*(u1*v1 + u2*v2)
 					+ nu*( dx(u1)*dx(v1)+dy(u1)*dy(v1)+dx(u2)*dx(v2)+dy(u2)*dy(v2))
-					+ p*q*(0.001)
+					+ p*q*(0.000001)
 					+ p*dx(v1)+ p*dy(v2)
 					+ dx(u1)*q+ dy(u2)*q
 					)
@@ -164,8 +174,8 @@ problem NavierStokes(u1,u2,p,v1,v2,q,solver=Crout,init=i) =
 
 
 problem Chaleur(u,v) =
-				int2d(Th)( IndTh1() * (roCIC*u*v + dt*kIC*Grad(u)'*Grad(v)) ) - int2d(Th1)(roCIC*uold*v + dt*Q*v)
-			+ int2d(Th)( IndTh2() * (roCIC*u*v + dt*kIC*Grad(u)'*Grad(v)) ) - int2d(Th2)(roCIC*uold*v + dt*Q*v)
+				int2d(Th)( IndTh1() * (roCIC*u*v + dt*kIC*Grad(u)'*Grad(v)) ) - int2d(Th1)(roCIC*uold*v + dt*fso1(temps,Q)*v)
+			+ int2d(Th)( IndTh2() * (roCIC*u*v + dt*kIC*Grad(u)'*Grad(v)) ) - int2d(Th2)(roCIC*uold*v + dt*fso2(temps,Q)*v)
 			+ int2d(Th)( IndTh3() * (roC3*u*v + dt*k3*Grad(u)'*Grad(v)) ) - int2d(Th3)(roC3*uold*v)
 			+	int2d(Th)( IndTh4() * (roC4*u*v + dt*k4*Grad(u)'*Grad(v)) ) - int2d(Th4)(roC4*uold*v)
 			// link equation stokes
@@ -200,8 +210,8 @@ for(i = 1;i<1500;i++)
 		//plot(u,value=true,fill = 1); // Chaleur seul
 		//plot([u1,u2],value=true,fill = 1);	 // Navier Stokes seul
 		//plot(modU,value=true,fill = 1);			 // Navier Stokes module seul
-		//plot(u,[u1,u2],value=true,fill = 1); // Navier Stokes + cheleur
-		plot(u,modU,value=true,fill = 1);		 // Navier Stokes module + cheleur
+		plot(u,[u1,u2],value=true,fill = 1); // Navier Stokes + cheleur
+		//plot(u,modU,value=true,fill = 1);		 // Navier Stokes module + cheleur
 //	#######################
 //	### affichage temps ###
 //	#######################
