@@ -175,7 +175,7 @@ problem NavierStokes(u1,u2,p,v1,v2,q,solver=Crout,init=i) =
 // Impossible donc de lier les deux equations (chaleur, Navier-stokes).
 problem Chaleur( u, v, solver = LU ) = int2d(Th)(u * v/dt) - int2d(Th)(uold * v/dt)
 					+ int2d(Th)(K * dx(u) * dx(v) + K * dy(u) * dy(v))
-					- int2d(Th)( (u*u1*dx(v) + u*u2*dy(v))) + int1d(Th,1,2,3,4,5,6)(u*u1*N.x*v + u*u2*N.y*v) 	//link equation stokes
+					//- int2d(Th)( (u*u1*dx(v) + u*u2*dy(v))) + int1d(Th,1,2,3,4,5,6)(u*u1*N.x*v + u*u2*N.y*v) 	//link equation stokes
   					- int1d(Th,1,2,3,4,5,6)(K*dx(u)*N.x*v + K*dy(u)*N.y*v)
 					- int2d(Th4)(fso1(temps)*v) - int2d(Th5)(fso2(temps)*v) + on(1,u=T0) +on(2,u=T0);
 
@@ -190,20 +190,20 @@ for(i = 0;i<1500;i++){
 //######################
 // Solve 
 //######################
-    up1=u1;
-    up2=u2;
-    NavierStokes;
-    //Chaleur;
+    //up1=u1;
+    //up2=u2;
+    //NavierStokes;
+    Chaleur;
     //Stokes;
-    //uold = u;
+    uold = u;
 
 //######################
 // plot solution 
 //######################
-    VhP modU = sqrt((u1*u1) + (u2*u2));
-    plot([u1,u2],value=true,fill = 1);
+    //VhP modU = sqrt((u1*u1) + (u2*u2));
+    //plot([u1,u2],value=true,fill = 1);
     //plot(u,modU,value=true,fill = 1);
-    //plot(u,value=true,fill = 1);
+    plot(u,value=true,fill = 1);
     //plot(modU,value=true,fill = 1);
     //plot(u,[u1,u2],value=true,fill = 1);
 //######################

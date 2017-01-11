@@ -1,5 +1,6 @@
 verbosity=0;
 
+//Test value
 real eAlen = 2;
 real ePCBlen = 1;
 real hPCBlen = 6;
@@ -8,6 +9,19 @@ real eIClen = 1;
 real maxwidth = ePCBlen + eAlen;
 real h1len = 1.2;
 real h2len = 3.4;
+
+/*
+//Theoritical value
+real eAlen = 0.004;
+real ePCBlen = 0.002;
+real hPCBlen = 0.13;
+real hIClen = 0.02;
+real eIClen = 0.002;
+real maxwidth = ePCBlen + eAlen;
+real h1len = 0.02;
+real h2len = 0.07;
+*/
+
 
 //	##############
 //	### Macros ###
@@ -198,20 +212,20 @@ for(i = 1;i<1500;i++)
 //	#############
 //	### Solve ###
 //	#############
-		up1=u1;
-		up2=u2;
+		//up1=u1;
+		//up2=u2;
 		Chaleur;
-		NavierStokes;
+		//NavierStokes;
 		//Stokes;
 		uold = u;
-		VhP modU = sqrt((u1*u1) + (u2*u2));
+		//VhP modU = sqrt((u1*u1) + (u2*u2));
 //	#####################
 //	### plot solution ###
 //	#####################
-		//plot(u,value=true,fill = 1); // Chaleur seul
+		plot(u,value=true,fill = 1); // Chaleur seul
 		//plot([u1,u2],value=true,fill = 1);	 // Navier Stokes seul
 		//plot(modU,value=true,fill = 1);			 // Navier Stokes module seul
-		plot(u,[u1,u2],value=true,fill = 1); // Navier Stokes + cheleur
+		//plot(u,[u1,u2],value=true,fill = 1); // Navier Stokes + cheleur
 		//plot(u,modU,value=true,fill = 1);		 // Navier Stokes module + cheleur
 //	#######################
 //	### affichage temps ###
