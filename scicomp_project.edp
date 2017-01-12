@@ -87,33 +87,33 @@ func real fso1(real t,real Q)
 //	############
 int n = 20;
 
-border ePCB(t=0, ePCBlen)						{x=t; y=0; label=1 ;} ;
-border ea(t=ePCBlen, maxwidth)			{x=t; y=0; label=2 ;} ;
-border lPCB(t=0, hPCBlen)						{x=maxwidth; y=t; label=3;} ;
-border ga(t=maxwidth, ePCBlen)			{x=t; y=hPCBlen; label=4;} ;
-border gPCB(t=ePCBlen, 0)						{x=t; y=hPCBlen; label=5;} ;
-border hPCB(t=hPCBlen, 0)						{x=0; y=t; label=6 ;} ;
+border ePCB(t=0, ePCBlen)		{x=t; y=0; label=1 ;} ;
+border ea(t=ePCBlen, maxwidth)		{x=t; y=0; label=2 ;} ;
+border lPCB(t=0, hPCBlen)		{x=maxwidth; y=t; label=3;} ;
+border ga(t=maxwidth, ePCBlen)		{x=t; y=hPCBlen; label=4;} ;
+border gPCB(t=ePCBlen, 0)		{x=t; y=hPCBlen; label=5;} ;
+border hPCB(t=hPCBlen, 0)		{x=0; y=t; label=6 ;} ;
 
-border lIC1(t=h1len+hIClen, h1len)			{x=ePCBlen; y=t; label=7;} ;
+border lIC1(t=h1len+hIClen, h1len)	{x=ePCBlen; y=t; label=7;} ;
 border gIC1(t=ePCBlen, ePCBlen+eIClen)	{x=t; y= h1len; label=8;} ;
-border hIC1(t=h1len, h1len+hIClen)			{x=ePCBlen+eIClen; y=t; label=9;} ;
+border hIC1(t=h1len, h1len+hIClen)	{x=ePCBlen+eIClen; y=t; label=9;} ;
 border eIC1(t=ePCBlen+eIClen, ePCBlen)	{x=t; y= h1len+hIClen; label=10;} ;
 
-border lIC2(t=h2len+hIClen, h2len)			{x=ePCBlen; y=t; label=11;} ;
+border lIC2(t=h2len+hIClen, h2len)	{x=ePCBlen; y=t; label=11;} ;
 border gIC2(t=ePCBlen, ePCBlen+eIClen)	{x=t; y= h2len; label=12;} ;
-border hIC2(t=h2len, h2len+hIClen)			{x=ePCBlen+eIClen; y=t; label=13;} ;
+border hIC2(t=h2len, h2len+hIClen)	{x=ePCBlen+eIClen; y=t; label=13;} ;
 border eIC2(t=ePCBlen+eIClen, ePCBlen)	{x=t; y= h2len+hIClen; label=14;} ;
 
-border b1(t=0.0, h1len)									{x=ePCBlen; y=t; label=15;} ;
-border b2(t=h1len+hIClen, h2len)				{x=ePCBlen; y=t; label=16;} ;
-border b3(t=h2len+hIClen, hPCBlen)			{x=ePCBlen; y=t; label=17;} ;
+border b1(t=0.0, h1len)			{x=ePCBlen; y=t; label=15;} ;
+border b2(t=h1len+hIClen, h2len)	{x=ePCBlen; y=t; label=16;} ;
+border b3(t=h2len+hIClen, hPCBlen)	{x=ePCBlen; y=t; label=17;} ;
 
 mesh Th = buildmesh	(
-											ePCB(n) + ea(n) + hPCB(n) + gPCB(n) + ga(n) + lPCB(n) +
-											lIC1(n) + hIC1(n) + eIC1(n) + gIC1(n) +
-											lIC2(n) + hIC2(n) + eIC2(n) + gIC2(n) +
-											b1(n) + b2(n) + b3(n)
-									 	);
+			ePCB(n) + ea(n) + hPCB(n) + gPCB(n) + ga(n) + lPCB(n) +
+			lIC1(n) + hIC1(n) + eIC1(n) + gIC1(n) +
+			lIC2(n) + hIC2(n) + eIC2(n) + gIC2(n) +
+			b1(n) + b2(n) + b3(n)
+		 	);
 plot(Th,wait=1);
 
 mesh Th1 = buildmesh(lIC1(n) + gIC1(n) + hIC1(n) + eIC1(n));
@@ -125,11 +125,11 @@ mesh Th4 = buildmesh(ea(n) + lPCB(n) + ga(n) + b3(-n) + eIC2(-n) + hIC2(-n) + gI
 //	#################
 //	### variables ###
 //	#################
-real dt = 0.1;
+real dt = 1;
 real T0 = 300;
-real kIC = 10;
-real k3 = 0.1;
-real k4 = 0.01;
+real kIC = 2;
+real k3 = 1;
+real k4 = 1;
 real roCIC = 1;
 real roC3 = 2;
 real roC4 = 1;
@@ -196,11 +196,11 @@ problem Chaleur(u,v) =
 			//- int2d(Th)( IndTh1()*( roCIC*Grad(u)'*[u1,u2]*v))
 			//- int2d(Th)( IndTh2()*( roCIC*Grad(u)'*[u1,u2]*v))
 			//- int2d(Th)( IndTh3()*( roC3*Grad(u)'*[u1,u2]*v))
-			//- int2d(Th)( IndTh4()*( roC4*Grad(u)'*[u1,u2]*v))
+			- int2d(Th)( IndTh4()*( roC4*Grad(u)'*[u1,u2]*v))
 			// conditions aux bords
 			- int1d(Th,15,16,17)( IndTh4() * dt * (k4*Grad(u)'*[N.x,N.y])*v )
 			- int1d(Th,15,16,17)(	IndTh3() * dt * (k3*Grad(u)'*[N.x,N.y])*v )
-			//- int1d(Th,4)(IndTh4()*[u1,u2]'*[N.x,N.y]*u*v) // si avec ventilation
+			- int1d(Th,4)(IndTh4()*[u1,u2]'*[N.x,N.y]*u*v) // si avec ventilation
 			// sources
 			+ on(1,u=T0) + on(2,u=T0);
 
@@ -212,21 +212,21 @@ for(i = 1;i<1500;i++)
 //	#############
 //	### Solve ###
 //	#############
-		//up1=u1;
-		//up2=u2;
+		up1=u1;
+		up2=u2;
 		Chaleur;
-		//NavierStokes;
+		NavierStokes;
 		//Stokes;
 		uold = u;
-		//VhP modU = sqrt((u1*u1) + (u2*u2));
+		VhP modU = sqrt((u1*u1) + (u2*u2));
 //	#####################
 //	### plot solution ###
 //	#####################
-		plot(u,value=true,fill = 1); // Chaleur seul
+		//plot(u,value=true,fill = 1); // Chaleur seul
 		//plot([u1,u2],value=true,fill = 1);	 // Navier Stokes seul
 		//plot(modU,value=true,fill = 1);			 // Navier Stokes module seul
 		//plot(u,[u1,u2],value=true,fill = 1); // Navier Stokes + cheleur
-		//plot(u,modU,value=true,fill = 1);		 // Navier Stokes module + cheleur
+		plot(u,modU,value=true,fill = 1);		 // Navier Stokes module + cheleur
 //	#######################
 //	### affichage temps ###
 //	#######################
