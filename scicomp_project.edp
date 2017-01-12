@@ -70,7 +70,7 @@ func real IndTh4()
 
 func real fsoventilation(real t)
 {
-		return 1;//(1 - exp(-t/3));				// fonction source ventilation sur ea
+		return (1 - exp(-t/3));				// fonction source ventilation sur ea
 }
 func real fso2(real t,real Q)
 {
@@ -127,12 +127,12 @@ mesh Th4 = buildmesh(ea(n) + lPCB(n) + ga(n) + b3(-n) + eIC2(-n) + hIC2(-n) + gI
 //	#################
 real dt = 0.1;
 real T0 = 300;
-real kIC = 2;
-real k3 = 0.2;
-real k4 = 0.03;
-real roCIC = 1.4;
+real kIC = 10;
+real k3 = 0.1;
+real k4 = 0.01;
+real roCIC = 1;
 real roC3 = 2;
-real roC4 = 0.1;
+real roC4 = 1;
 real Q = 1000000;
 real rhof = 1;
 real mu = 0.0025;
@@ -193,10 +193,10 @@ problem Chaleur(u,v) =
 			+ int2d(Th)( IndTh3() * (roC3*u*v + dt*k3*Grad(u)'*Grad(v)) ) - int2d(Th3)(roC3*uold*v)
 			+	int2d(Th)( IndTh4() * (roC4*u*v + dt*k4*Grad(u)'*Grad(v)) ) - int2d(Th4)(roC4*uold*v)
 			// link equation stokes
-			- int2d(Th)( IndTh1()*( roCIC*Grad(u)'*[u1,u2]*v))
-			- int2d(Th)( IndTh2()*( roCIC*Grad(u)'*[u1,u2]*v))
-			- int2d(Th)( IndTh3()*( roC3*Grad(u)'*[u1,u2]*v))
-			- int2d(Th)( IndTh4()*( roC4*Grad(u)'*[u1,u2]*v))
+			//- int2d(Th)( IndTh1()*( roCIC*Grad(u)'*[u1,u2]*v))
+			//- int2d(Th)( IndTh2()*( roCIC*Grad(u)'*[u1,u2]*v))
+			//- int2d(Th)( IndTh3()*( roC3*Grad(u)'*[u1,u2]*v))
+			//- int2d(Th)( IndTh4()*( roC4*Grad(u)'*[u1,u2]*v))
 			// conditions aux bords
 			- int1d(Th,15,16,17)( IndTh4() * dt * (k4*Grad(u)'*[N.x,N.y])*v )
 			- int1d(Th,15,16,17)(	IndTh3() * dt * (k3*Grad(u)'*[N.x,N.y])*v )
